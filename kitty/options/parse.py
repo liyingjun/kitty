@@ -1340,6 +1340,14 @@ class Parser:
     def window_resize_step_lines(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['window_resize_step_lines'] = positive_int(val)
 
+    def x11_input_method_module(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
+        val = val.lower()
+        if val not in self.choices_for_x11_input_method_module:
+            raise ValueError(f"The value {val} is not a valid choice for x11_input_method_module")
+        ans["x11_input_method_module"] = val
+
+    choices_for_x11_input_method_module = frozenset(('auto', 'ibus', 'xim'))
+
     def x11_hide_window_decorations(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         deprecated_hide_window_decorations_aliases('x11_hide_window_decorations', val, ans)
 

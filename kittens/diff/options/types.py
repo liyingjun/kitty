@@ -52,7 +52,7 @@ class Options:
     hunk_margin_bg: Color = Color(219, 237, 255)
     margin_bg: Color = Color(250, 251, 252)
     margin_fg: Color = Color(170, 170, 170)
-    margin_filler_bg: typing.Optional[kitty.fast_data_types.Color] = None
+    margin_filler_bg: typing.Union[kitty.fast_data_types.Color, None] = None
     num_context_lines: int = 3
     pygments_style: str = 'default'
     removed_bg: Color = Color(255, 238, 240)
@@ -61,7 +61,7 @@ class Options:
     search_bg: Color = Color(68, 68, 68)
     search_fg: Color = Color(255, 255, 255)
     select_bg: Color = Color(180, 213, 254)
-    select_fg: typing.Optional[kitty.fast_data_types.Color] = Color(0, 0, 0)
+    select_fg: typing.Union[kitty.fast_data_types.Color, None] = Color(0, 0, 0)
     syntax_aliases: typing.Dict[str, str] = {'pyj': 'py', 'pyi': 'py', 'recipe': 'py'}
     title_bg: Color = Color(255, 255, 255)
     title_fg: Color = Color(0, 0, 0)

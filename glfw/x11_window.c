@@ -1122,6 +1122,11 @@ static void processEvent(XEvent *event)
     static bool keymap_dirty = false;
 #define UPDATE_KEYMAP_IF_NEEDED if (keymap_dirty) { keymap_dirty = false; glfw_xkb_compile_keymap(&_glfw.x11.xkb, NULL); }
 
+    if(glfw_xim_filter_event(&_glfw.x11.xkb.xim, event)) {
+        // XIM 已经处理了此事件，不再继续处理
+        return;
+    }
+
     if (_glfw.x11.randr.available)
     {
         if (event->type == _glfw.x11.randr.eventBase + RRNotify)
@@ -1249,6 +1254,42 @@ static void processEvent(XEvent *event)
         case KeyPress:
         {
             UPDATE_KEYMAP_IF_NEEDED;
+            
+            // 尝试使用 XIM 处理按键（支持 fcitx 4.x）
+            // Xutf8LookupString 会自动处理输入法状态：
+            // - 预编辑时返回 XLookupNone（不处理）
+            // - 提交中文时返回 XLookupChars（只有文本）
+            // - 普通按键返回 XLookupBoth 或 XLookupKeySym（走正常流程）
+            if (_glfw.x11.xkb.xim.inited && _glfw.x11.xkb.xim.im && 
+                _glfw.x11.xkb.xim.ic && _glfw.x11.xkb.xim.enabled) {
+                char buffer[64];
+                KeySym keysym;
+                Status status = 0;
+                int len = glfw_xim_lookup_string(&_glfw.x11.xkb.xim, &event->xkey, 
+                                                  buffer, sizeof(buffer), &keysym, &status);
+                
+                if (status == XLookupChars && len > 0) {
+                    // 输入法提交了纯文本（例如中文）
+                    buffer[len] = '\0';
+                    GLFWkeyevent glfw_ev = {
+                        .key = 0,
+                        .shifted_key = 0,
+                        .alternate_key = 0,
+                        .native_key = 0,
+                        .action = GLFW_PRESS,
+                        .mods = 0,
+                        .text = buffer,
+                        .ime_state = GLFW_IME_COMMIT_TEXT
+                    };
+                    _glfwInputKeyboard(window, &glfw_ev);
+                    return;
+                } else if (status == XLookupNone) {
+                    // 输入法正在预编辑，不处理此按键
+                    return;
+                }
+                // XLookupKeySym 或 XLookupBoth：继续正常处理
+            }
+            
             glfw_xkb_handle_key_event(window, &_glfw.x11.xkb, event->xkey.keycode, GLFW_PRESS);
             return;
         }
@@ -1690,6 +1731,9 @@ static void processEvent(XEvent *event)
             if (window->cursorMode == GLFW_CURSOR_DISABLED)
                 disableCursor(window);
 
+            // 设置 XIM 焦点（支持 fcitx 4.x 输入法）
+            glfw_xim_set_focus(&_glfw.x11.xkb.xim, true);
+
             _glfwInputWindowFocus(window, true);
             return;
         }
@@ -1706,6 +1750,9 @@ static void processEvent(XEvent *event)
 
             if (window->cursorMode == GLFW_CURSOR_DISABLED)
                 enableCursor(window);
+
+            // 取消 XIM 焦点（支持 fcitx 4.x 输入法）
+            glfw_xim_set_focus(&_glfw.x11.xkb.xim, false);
 
             if (window->monitor && window->autoIconify)
                 _glfwPlatformIconifyWindow(window);
@@ -1929,6 +1976,14 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
         acquireMonitor(window);
     }
 
+    // 为窗口创建 XIM 输入上下文（支持 fcitx 4.x 输入法）
+    glfw_xim_create_ic(&_glfw.x11.xkb.xim, _glfw.x11.display, window->x11.handle);
+    
+    // 窗口创建后立即设置 XIM 焦点（很多输入法需要这个）
+    if (_glfw.x11.xkb.xim.ic) {
+        glfw_xim_set_focus(&_glfw.x11.xkb.xim, true);
+    }
+
     XFlush(_glfw.x11.display);
     return true;
 }
@@ -1946,6 +2001,11 @@ void _glfwPlatformDestroyWindow(_GLFWwindow* window)
 
     if (window->x11.handle)
     {
+        // 只有当 IC 关联的是这个窗口时才销毁（支持 fcitx 4.x 输入法）
+        if (_glfw.x11.xkb.xim.ic && _glfw.x11.xkb.xim.window == window->x11.handle) {
+            glfw_xim_destroy_ic(&_glfw.x11.xkb.xim);
+        }
+
         XDeleteContext(_glfw.x11.display, window->x11.handle, _glfw.x11.context);
         XUnmapWindow(_glfw.x11.display, window->x11.handle);
         XDestroyWindow(_glfw.x11.display, window->x11.handle);

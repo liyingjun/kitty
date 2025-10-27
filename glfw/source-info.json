@@ -128,6 +128,7 @@
     "headers": [
       "x11_platform.h",
       "xkb_glfw.h",
+      "xim_glfw.h",
       "dbus_glfw.h",
       "ibus_glfw.h",
       "backend_utils.h",
@@ -145,6 +146,7 @@
       "x11_monitor.c",
       "x11_window.c",
       "xkb_glfw.c",
+      "xim_glfw.c",
       "dbus_glfw.c",
       "ibus_glfw.c",
       "posix_thread.c",

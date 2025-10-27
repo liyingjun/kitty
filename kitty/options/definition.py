@@ -3102,6 +3102,19 @@ based on the system state is chosen automatically. Set it to :code:`x11` or
 config is not supported.
 '''
     )
+
+
+opt('x11_input_method_module', 'auto',
+    choices=('auto', 'ibus', 'xim'),
+    long_text='''
+Choose the input method module for X11. By default, :code:`auto` will use IBus
+if available. Set to :code:`xim` to use XIM (X Input Method) for input method
+frameworks like fcitx 4.x. Set to :code:`ibus` to force using IBus. This option
+only takes effect on X11, not on Wayland. Changing this option requires
+restarting kitty. Note that when using :code:`xim`, you also need to set the
+:envvar:`XMODIFIERS` environment variable (e.g., :code:`XMODIFIERS=@im=fcitx`).
+'''
+    )
 egr()  # }}}
 
 

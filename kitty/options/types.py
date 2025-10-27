@@ -29,6 +29,7 @@ if typing.TYPE_CHECKING:
     choices_for_tab_powerline_style = typing.Literal['angled', 'round', 'slanted']
     choices_for_tab_switch_strategy = typing.Literal['last', 'left', 'previous', 'right']
     choices_for_window_logo_position = typing.Literal['top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right']
+    choices_for_x11_input_method_module = typing.Literal['auto', 'ibus', 'xim']
 else:
     choices_for_allow_cloning = str
     choices_for_allow_remote_control = str
@@ -46,6 +47,7 @@ else:
     choices_for_tab_powerline_style = str
     choices_for_tab_switch_strategy = str
     choices_for_window_logo_position = str
+    choices_for_x11_input_method_module = str
 
 option_names = (  # {{{
  'action_alias',
@@ -458,27 +460,28 @@ option_names = (  # {{{
  'window_margin_width',
  'window_padding_width',
  'window_resize_step_cells',
- 'window_resize_step_lines')  # }}}
+ 'window_resize_step_lines',
+ 'x11_input_method_module')  # }}}
 
 
 class Options:
-    active_border_color: typing.Optional[kitty.fast_data_types.Color] = Color(0, 255, 0)
+    active_border_color: typing.Union[kitty.fast_data_types.Color, None] = Color(0, 255, 0)
     active_tab_background: Color = Color(238, 238, 238)
     active_tab_font_style: typing.Tuple[bool, bool] = (True, True)
     active_tab_foreground: Color = Color(0, 0, 0)
-    active_tab_title_template: typing.Optional[str] = None
+    active_tab_title_template: typing.Union[str, None] = None
     allow_cloning: choices_for_allow_cloning = 'ask'
     allow_hyperlinks: int = 1
     allow_remote_control: choices_for_allow_remote_control = 'no'
     background: Color = Color(0, 0, 0)
-    background_image: typing.Optional[str] = None
+    background_image: typing.Union[str, None] = None
     background_image_layout: choices_for_background_image_layout = 'tiled'
     background_image_linear: bool = False
     background_opacity: float = 1.0
     background_tint: float = 0
     bell_border_color: Color = Color(255, 90, 0)
     bell_on_tab: str = '🔔 '
-    bell_path: typing.Optional[str] = None
+    bell_path: typing.Union[str, None] = None
     bold_font: str = 'auto'
     bold_italic_font: str = 'auto'
     box_drawing_scale: typing.Tuple[float, float, float, float] = (0.001, 1.0, 1.5, 2.0)
@@ -492,12 +495,12 @@ class Options:
     command_on_bell: typing.List[str] = ['none']
     confirm_os_window_close: int = -1
     copy_on_select: str = ''
-    cursor: typing.Optional[kitty.fast_data_types.Color] = Color(204, 204, 204)
+    cursor: typing.Union[kitty.fast_data_types.Color, None] = Color(204, 204, 204)
     cursor_beam_thickness: float = 1.5
     cursor_blink_interval: float = -1.0
     cursor_shape: int = 1
     cursor_stop_blinking_after: float = 15.0
-    cursor_text_color: typing.Optional[kitty.fast_data_types.Color] = Color(17, 17, 17)
+    cursor_text_color: typing.Union[kitty.fast_data_types.Color, None] = Color(17, 17, 17)
     cursor_underline_thickness: float = 2.0
     default_pointer_shape: choices_for_default_pointer_shape = 'beam'
     detect_urls: bool = True
@@ -561,19 +564,19 @@ class Options:
     scrollback_pager_history_size: int = 0
     select_by_word_characters: str = '@-./_~?&=%+#'
     select_by_word_characters_forward: str = ''
-    selection_background: typing.Optional[kitty.fast_data_types.Color] = Color(255, 250, 205)
-    selection_foreground: typing.Optional[kitty.fast_data_types.Color] = Color(0, 0, 0)
+    selection_background: typing.Union[kitty.fast_data_types.Color, None] = Color(255, 250, 205)
+    selection_foreground: typing.Union[kitty.fast_data_types.Color, None] = Color(0, 0, 0)
     shell: str = '.'
     shell_integration: typing.FrozenSet[str] = frozenset({'enabled'})
     single_window_margin_width: FloatEdges = FloatEdges(left=-1.0, top=-1.0, right=-1.0, bottom=-1.0)
-    startup_session: typing.Optional[str] = None
+    startup_session: typing.Union[str, None] = None
     strip_trailing_spaces: choices_for_strip_trailing_spaces = 'never'
     sync_to_monitor: bool = True
     tab_activity_symbol: str = ''
     tab_bar_align: choices_for_tab_bar_align = 'left'
-    tab_bar_background: typing.Optional[kitty.fast_data_types.Color] = None
+    tab_bar_background: typing.Union[kitty.fast_data_types.Color, None] = None
     tab_bar_edge: int = 3
-    tab_bar_margin_color: typing.Optional[kitty.fast_data_types.Color] = None
+    tab_bar_margin_color: typing.Union[kitty.fast_data_types.Color, None] = None
     tab_bar_margin_height: TabBarMarginHeight = TabBarMarginHeight(outer=0, inner=0)
     tab_bar_margin_width: float = 0
     tab_bar_min_tabs: int = 2
@@ -590,7 +593,7 @@ class Options:
     url_excluded_characters: str = ''
     url_prefixes: typing.Tuple[str, ...] = ('file', 'ftp', 'ftps', 'gemini', 'git', 'gopher', 'http', 'https', 'irc', 'ircs', 'kitty', 'mailto', 'news', 'sftp', 'ssh') # noqa
     url_style: int = 3
-    visual_bell_color: typing.Optional[kitty.fast_data_types.Color] = None
+    visual_bell_color: typing.Union[kitty.fast_data_types.Color, None] = None
     visual_bell_duration: float = 0
     visual_window_select_characters: str = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     wayland_titlebar_color: int = 0
@@ -599,12 +602,13 @@ class Options:
     window_alert_on_bell: bool = True
     window_border_width: typing.Tuple[float, str] = (0.5, 'pt')
     window_logo_alpha: float = 0.5
-    window_logo_path: typing.Optional[str] = None
+    window_logo_path: typing.Union[str, None] = None
     window_logo_position: choices_for_window_logo_position = 'bottom-right'
     window_margin_width: FloatEdges = FloatEdges(left=0, top=0, right=0, bottom=0)
     window_padding_width: FloatEdges = FloatEdges(left=0, top=0, right=0, bottom=0)
     window_resize_step_cells: int = 2
     window_resize_step_lines: int = 2
+    x11_input_method_module: choices_for_x11_input_method_module = 'auto'
     action_alias: typing.Dict[str, str] = {}
     env: typing.Dict[str, str] = {}
     exe_search_path: typing.Dict[str, str] = {}

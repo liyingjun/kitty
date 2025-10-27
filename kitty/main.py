@@ -103,6 +103,22 @@ def init_glfw_module(glfw_module: str, debug_keyboard: bool = False, debug_rende
 
 def init_glfw(opts: Options, debug_keyboard: bool = False, debug_rendering: bool = False) -> str:
     glfw_module = 'cocoa' if is_macos else ('wayland' if is_wayland(opts) else 'x11')
+    
+    # 根据配置设置输入法模块
+    # 优先使用配置，如果没有设置环境变量则使用配置值
+    if glfw_module == 'x11' and hasattr(opts, 'x11_input_method_module'):
+        im_module = opts.x11_input_method_module
+        if im_module != 'auto' and not os.environ.get('GLFW_IM_MODULE'):
+            # 只有当环境变量没有设置时才使用配置
+            os.environ['GLFW_IM_MODULE'] = im_module
+            # 如果是 xim 模式，确保 XMODIFIERS 也设置了
+            if im_module == 'xim' and not os.environ.get('XMODIFIERS'):
+                # 尝试从已有的环境变量中获取，或使用默认值
+                xmodifiers = os.environ.get('XMODIFIERS', '')
+                if not xmodifiers or xmodifiers == '@im=none':
+                    # 默认使用 fcitx，用户可以通过环境变量覆盖
+                    os.environ['XMODIFIERS'] = '@im=fcitx'
+    
     init_glfw_module(glfw_module, debug_keyboard, debug_rendering)
     return glfw_module
 

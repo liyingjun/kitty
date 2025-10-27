@@ -566,6 +566,9 @@ glfw_xkb_release(_GLFWXKBData *xkb) {
         xkb->context = NULL;
     }
     glfw_ibus_terminate(&xkb->ibus);
+#ifdef _GLFW_X11
+    glfw_xim_terminate(&xkb->xim);
+#endif
 }
 
 bool
@@ -579,6 +582,10 @@ glfw_xkb_create_context(_GLFWXKBData *xkb) {
     }
 #ifndef _GLFW_WAYLAND
     glfw_connect_to_ibus(&xkb->ibus);
+#endif
+#ifdef _GLFW_X11
+    // 初始化 XIM (X Input Method) 支持 fcitx 4.x
+    glfw_xim_init(&xkb->xim, _glfw.x11.display);
 #endif
     return true;
 }
